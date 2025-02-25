@@ -20,7 +20,7 @@ import re
 from torch import uint8, int32, Tensor
 import pickle
 from ..core.bitpack import BitPack
-
+import numpy as np
 # _MiLo_BACKEND_CLASSES = [MiLoLinear3bitWithZeros]
 _MiLo_BACKEND_CLASSES = []
 
@@ -525,7 +525,7 @@ class BaseMiLoModel:
         # Load weights
         try:
             weights = cls.load_weights(save_dir)
-            
+            # print(weights)
             if lorc_save_dir is not None:
                 print(f"using partial lorc weights. tags are {lorc_tags}")
                 lorc_weights = cls.load_weights(lorc_save_dir)
@@ -715,15 +715,21 @@ class BaseMiLoModel:
     ):
         zero = 4 #for INT3 symmetric quantization
         for name, module in model.named_modules():
-            if isinstance(module, MiLoLinear) and (module.rank != None):
+            if isinstance(module, MiLoLinear) and (module.rank is not None):
                 (U_h_scale, U_h_q), (V_h_scale,V_h_q) = module.UV_quantized
                 U_h_q_unpack = BitPack.unpack_3bit_32(U_h_q)
                 V_h_q_unpack = BitPack.unpack_3bit_32(V_h_q)
                 U_h = U_h_q_unpack[:int(module.meta["shape"][0] * (module.rank / module.LoRC_groupsize)),:]
-                V_h = V_h_q_unpack[:int(module.rank * module.meta["shape"][1] / module.LoRC_groupsize), :]
+                V_h = V_h_q_unpack[:int(module.meta["shape"][1] * module.rank / module.LoRC_groupsize), :]
                 module.U = ((U_h - zero) * 2 * U_h_scale / 7).reshape(module.meta["shape"][0], -1).half() 
                 module.V = ((V_h - zero) * 2 * V_h_scale / 7).reshape(-1, module.meta["shape"][1]).half() 
                 module.pop_UV_quantized()
+                # print("//")
+                # print(name)
+                # np.savetxt('model.layers.0.self_attn.q_proj_dequantize_Uu.txt', U_h_q.cpu().numpy(), fmt='%.2f')
+                # np.savetxt('model.layers.0.self_attn.q_proj_dequantize_Us.txt', U_h_scale.cpu().numpy(), fmt='%.2f')
+                # print("//")
+                # module.len()
                 # module.meta["shape"]
                 # module.rank
                 # if rank > 0:

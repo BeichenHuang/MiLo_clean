@@ -13,14 +13,14 @@ compute_dtype = torch.float16
 device        = "cuda"
 
 fp16_model_path = "/scratch/bcjw/bhuang4/cache/models--mistralai--Mixtral-8x7B-v0.1/snapshots/ffe1a706bacbd5abddc5ff99432ee38f7e0662fb"
-quant_model_path = '/scratch/bcjw/bhuang4/MiLo_official_test/Mxitral_Moe_test'
+quant_model_path = '/scratch/bcjw/bhuang4/MiLo_official_test/Mxitral_Moe_test2'
 
 tokenizer = AutoTokenizer.from_pretrained(model_id) 
 
 quant_config = BaseQuantizeConfig(nbits=3, group_size=64, quant_scale=False, quant_zero=False,axis=1) 
 
 
-ranks = {'self_attn': 512}
+ranks = {'self_attn': 8,'expert':8}
 # kurtosis_rank = {}
 # with open('/u/bhuang4/mixtral_offloading/HQQ_LoRC/kurtosis_deepseek.txt', 'r') as file:
 #     lines = file.readlines()

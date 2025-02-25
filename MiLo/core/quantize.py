@@ -721,7 +721,7 @@ class MiLoLinear(nn.Module):
         # if 'self_attn' in self.name or 'shared' in self.name  or 'layers.0.mlp' in self.name:
         #     iters = 0
 
-        if rank != 0:
+        if rank is not None:
             for i in range(0, iters + 1):
                 
                 if i > 0:
@@ -759,7 +759,7 @@ class MiLoLinear(nn.Module):
             )
             meta.update({"quant_scale": quant_scale, "quant_zero": quant_zero})
 
-            
+        
         # if lorc_dtype == 'int8':
         #     UV_quantized = (full_to_int8(U), full_to_int8(V))
         #     self.UV_quantized = UV_quantized
@@ -769,7 +769,12 @@ class MiLoLinear(nn.Module):
         else:
             raise NotImplementedError
 
-        
+        # if "layers.0.self_attn.q_proj" in self.name:
+        #     Us,Uu = full_to_int3(U,self.LoRC_groupsize)
+
+        #     np.savetxt('model.layers.0.self_attn.q_proj_orig_Us.txt', Us.cpu().numpy(), fmt='%.2f')
+        #     np.savetxt('model.layers.0.self_attn.q_proj_orig_Uu.txt', Uu.cpu().numpy(), fmt='%.2f')
+        #     self.len()
         self.W_q = W_q
         self.meta = meta
         self.cuda(self.device)
@@ -826,19 +831,19 @@ class MiLoLinear(nn.Module):
         weight = self.dequantize()
         # print("//")
         # print(self.name)
-        print("//")
-        print(weight)
-        print("//")
-        print(self.U)
-        print("//")
-        print(self.V)
+        # print("//")
+        # print(weight)
+        # print("//")
+        # print(self.U)
+        # print("//")
+        # print(self.V)
 
         if self.U != None and self.V != None:
             weight = weight + self.U @ self.V # recover E_hat and add to the weight
 
-        print("//")
-        print(weight)
-        self.name.pop()
+        # print("//")
+        # print(weight)
+        # self.name.pop()
         return torch.matmul(x, weight.t() if (transpose) else weight)
 
     @torch.compile()

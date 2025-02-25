@@ -25,8 +25,8 @@ device         = 'cuda:0'
 def main():
    
     model_id = "mistralai/Mixtral-8x7B-v0.1" 
-    ranks = {'self_attn': 32,'experts':32}
-    model_path = "/scratch/bcjw/bhuang4/MiLo_official_test/Mxitral_Moe_test-iter2"
+    # ranks = {'self_attn': 32,'experts':32}
+    model_path = "/scratch/bcjw/bhuang4/MiLo_official_test/Mxitral_Moe_test2-iter2"
     model = AutoMiLoHFModel.from_quantized(model_path,
                                           LoRC_dtype = "int3",)
 
